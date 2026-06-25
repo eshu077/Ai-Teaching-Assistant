@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.wav
+node_modules/
+dist/
+.venv/
