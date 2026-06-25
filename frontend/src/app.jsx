@@ -24,7 +24,7 @@ function App() {
     if (!val && type === 'text') return;
     setLoading(true); setShowAnswer(false); setQuizIndex(0); 
     try {
-      const url = `http://127.0.0.1:8000/process-${type === 'audio' ? 'audio' : 'text'}${type === 'audio' ? '?mode=' + mode : ''}`;
+      const url = `https://ai-teaching-assistant-1snv.onrender.com/process-${type === 'audio' ? 'audio' : 'text'}${type === 'audio' ? '?mode=' + mode : ''}`;
       let res;
       if (type === 'audio') {
         const fd = new FormData(); fd.append('file', val);
