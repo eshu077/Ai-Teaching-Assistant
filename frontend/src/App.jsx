@@ -35,13 +35,19 @@ function App() {
       
       const data = res.data;
       if (data.mode === "quiz") {
-        // सवालों और जवाबों को सही से लिस्ट में बदलना
-        data.questions = data.content.split("[SEP]").map(q => q.trim()).filter(q => q.length > 5);
-        data.answers = data.answer.split("[SEP]").map(a => a.trim()).filter(a => a.length > 1);
+        // Robust Parsing: अगर SEP न हो तो भी क्रैश न हो
+        const qList = data.content.split("[SEP]").map(q => q.trim()).filter(q => q.length > 5);
+        data.questions = qList.length > 0 ? qList : [data.content];
+        
+        const aList = data.answer.split("[SEP]").map(a => a.trim()).filter(a => a.length > 0);
+        data.answers = aList.length > 0 ? aList : [data.answer || "Answer not generated"];
       }
       setResult(data);
       speak(data.mode === "quiz" ? data.questions[0] : data.content);
-    } catch (e) { alert("AI Processing failed!"); }
+    } catch (e) { 
+      console.error(e);
+      alert("AI Processing failed! Please try again."); 
+    }
     setLoading(false); setInputText("");
   };
 
@@ -51,7 +57,8 @@ function App() {
       mediaRecorder.current = new MediaRecorder(s); audioChunks.current = [];
       mediaRecorder.current.ondataavailable = (e) => audioChunks.current.push(e.data);
       mediaRecorder.current.onstop = () => {
-        handleAction('audio', new Blob(audioChunks.current, {type:'audio/wav'}));
+        const blob = new Blob(audioChunks.current, {type:'audio/wav'});
+        handleAction('audio', blob);
         s.getTracks().forEach(t => t.stop());
       };
       mediaRecorder.current.start(); setIsRecording(true);
@@ -87,31 +94,38 @@ function App() {
           </div>
         </div>
 
-        {loading && <h2 style={styles.loader}>🧠 Processing... ✨</h2>}
+        {loading && <h2 style={styles.loader}>🧠 AI is working... ✨</h2>}
 
         {result && !loading && (
           <div style={styles.resultGrid}>
-            <div style={styles.resCard}><img src={`https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=1000`} style={styles.img} alt="Visual" /></div>
+            <div style={styles.resCard}><img src={result.image || `https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=1000`} style={styles.img} alt="Visual" /></div>
 
             <div style={mode === "quiz" ? styles.quizCard : styles.resCard}>
-              <div style={styles.resType}>{mode === "quiz" ? `Question ${quizIndex + 1} of ${result.questions.length}` : "Detailed Lesson"}</div>
+              <div style={styles.resType}>{mode === "quiz" ? `Question ${quizIndex + 1} of ${result.questions?.length || 1}` : "Detailed Lesson"}</div>
               
               <h2 style={styles.explanationText}>
-                {mode === "quiz" ? result.questions[quizIndex] : result.content}
+                {mode === "quiz" ? (result.questions ? result.questions[quizIndex] : result.content) : result.content}
               </h2>
 
               {mode === "quiz" && (
                 <div style={{marginTop: '30px'}}>
                     {/* Answer Display */}
-                    {showAnswer && <div style={styles.answerBox}>✅ {result.answers[quizIndex]}</div>}
+                    {showAnswer && (
+                        <div style={styles.answerBox}>
+                            ✅ {result.answers ? result.answers[quizIndex] : "Loading answer..."}
+                        </div>
+                    )}
 
                     {/* Controls Row */}
                     <div style={{display: 'flex', gap: '15px', marginTop: '20px'}}>
                         {!showAnswer && (
-                            <button onClick={()=>{setShowAnswer(true); speak(result.answers[quizIndex]);}} style={styles.ansBtn}>Show Answer 🔑</button>
+                            <button onClick={()=>{
+                                setShowAnswer(true); 
+                                speak(result.answers ? result.answers[quizIndex] : "The answer is on screen");
+                            }} style={styles.ansBtn}>Show Answer 🔑</button>
                         )}
                         
-                        {quizIndex < result.questions.length - 1 && (
+                        {result.questions && quizIndex < result.questions.length - 1 && (
                             <button onClick={() => {
                                 const nextIdx = quizIndex + 1;
                                 setQuizIndex(nextIdx);
@@ -142,7 +156,7 @@ const styles = {
   header: { marginBottom: '30px' },
   badge: { backgroundColor: '#bae6fd', color: '#0369a1', padding: '6px 16px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: '800', display: 'inline-block' },
   title: { fontSize: '3.5rem', fontWeight: '800', color: '#1e293b' },
-  mainCard: { backgroundColor: 'white', padding: '50px', borderRadius: '40px', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', marginBottom: '50px' },
+  mainCard: { backgroundColor: 'white', padding: '50px', borderRadius: '40px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', marginBottom: '50px' },
   micBtn: { width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#10b981', color: 'white', border: 'none', fontSize: '2.5rem', cursor: 'pointer' },
   stopBtn: { width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#ef4444', color: 'white', border: 'none', fontSize: '2.5rem', cursor: 'pointer' },
   searchRow: { display: 'flex', gap: '15px', marginTop: '30px' },
