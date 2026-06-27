@@ -54,6 +54,24 @@ pip install -r requirements.txt
 python main.py
 ```bash
 
-cd backend
-pip install -r requirements.txt
-python main.py
+### 2. Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```bash
+
+## 📖 How to Use
+Select Mode: Choose between Teaching Mode (to explain) or Quiz Mode (for assessment) from the sidebar.
+Voice Command: Tap the Mic icon, speak your topic (e.g., "बच्चों को Solar System के बारे में समझाओ"), and tap the Stop button.
+Visual Feedback: The AI will display a relevant image and explain the topic in simple Hinglish bullet points.
+Interactive Quiz: In Quiz mode, ask a question -> AI generates 4 slides -> Click Show Answer to reveal and Next to move forward.
+
+##🛡️ Security
+This project uses .env for API key management. The .gitignore file ensures that sensitive credentials are never pushed to public repositories.
+
+## 👨‍💻 Built By
+ESHU SHARMA
+CDF Technical Assignment Round 2
+📅 Date: June 25, 2024
